@@ -2,6 +2,7 @@ import styled from "styled-components";
 import axios from "axios";
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { throttle } from "lodash";
 
 interface SendData {
   sheet_name: "신청서";
@@ -24,9 +25,21 @@ function App() {
     "user2-phone": "",
     "user2-addr": "",
   });
-  const sendData = async (e: React.FormEvent<HTMLFormElement>) => {
+  const [loading, setLoading] = useState(false);
+  const disabledBtn = (() => {
+    if (data.team === "") return true;
+    if (data.user1 === "") return true;
+    if (data.user2 === "") return true;
+    if (data["user1-phone"] === "") return true;
+    if (data["user1-addr"] === "") return true;
+    if (data["user2-phone"] === "") return true;
+    if (data["user2-addr"] === "") return true;
+    return loading;
+  })();
+  const sendData = throttle(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const { data: resData } = await axios.get(
         "https://script.google.com/macros/s/AKfycbyVl3fRUlQ5WeJQ-EwXie7Hcuxel_9QF5pTDsvAFpcQSvPnyhsT5i_ZM-XfYVqsI9HE0Q/exec",
         {
@@ -38,14 +51,18 @@ function App() {
           resData.row - 1
         }번째로 신청 되었습니다.\n신청되었더라도 입금하셔야\n신청이 완료됩니다.`,
         icon: "success",
+      }).then(() => {
+        setLoading(false);
       });
     } catch (error) {
       Swal.fire({
         title: `신청이 되지 않았습니다.\n지속된다면 운영자에게 연락주세요.`,
         icon: "error",
+      }).then(() => {
+        setLoading(false);
       });
     }
-  };
+  }, 100);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const key = e.target.name as keyof SendData;
     setData({ ...data, [key]: e.target.value });
@@ -136,7 +153,7 @@ function App() {
             />
           </label>
         </legend>
-        <button>제출하기</button>
+        <button disabled={disabledBtn}>제출하기</button>
       </FormBox>
     </Container>
   );
