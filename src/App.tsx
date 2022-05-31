@@ -38,18 +38,26 @@ function App() {
   })();
   const sendData = throttle(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const deadLine = new Date("2022-06-10T14:00:00").valueOf();
+    const today = new Date().valueOf();
+    if (deadLine > today) {
+      Swal.fire({
+        title: "6월 10일부터 신청이 가능합니다.",
+        icon: "error",
+      });
+      return;
+    }
     try {
       setLoading(true);
-      const { data: resData } = await axios.get(
+      await axios.get(
         "https://script.google.com/macros/s/AKfycbyVl3fRUlQ5WeJQ-EwXie7Hcuxel_9QF5pTDsvAFpcQSvPnyhsT5i_ZM-XfYVqsI9HE0Q/exec",
         {
           params: data,
         }
       );
       Swal.fire({
-        title: `${
-          resData.row - 1
-        }번째로 신청 되었습니다.\n신청되었더라도 입금하셔야\n신청이 완료됩니다.`,
+        title: `신청완료!`,
+        text: "참가비입금 계좌로 1팀당 참가비 30,000원이\n입금되어야 최종 완료됩니다.",
         icon: "success",
       }).then(() => {
         setLoading(false);
@@ -69,13 +77,16 @@ function App() {
   };
   return (
     <Container>
-      <h1>티츄쟁이들의 진검승부</h1>
+      <h1>린재배 티츄전국대회 신청서</h1>
       <Info>
         <h2>신청전 안내사항</h2>
         <ul>
-          <li>신청은 신청서 작성 후 입금 순서대로 선착순으로 진행됩니다.</li>
-          <li>환불이 필요할 때는 팀원 1의 연락처로 연락드립니다.</li>
-          <li>궁금한점은 (인재씨 카톡? 전화번호?)로 연락주세요.</li>
+          <li>
+            신청은 신청서 작성 후 참가비 '입금순서'대로 선착순으로 진행됩니다.
+          </li>
+          <li>궁금한점은 '잉재 카톡ID: mns1004' 로 연락주세요.</li>
+          <li>※ 2022.06.10(금) 오후 2시부터 신청유효한 점 주의</li>
+          <li>※ 참가비입금계좌: 3333-01-5022866 카카오뱅크, 허인재</li>
         </ul>
       </Info>
       <FormBox onSubmit={sendData}>
